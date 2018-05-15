@@ -1,0 +1,56 @@
+body {
+    text-align: center;
+
+}
+.bg {
+    background-color: white;
+    height: 556px;
+    width: 520px;
+    position:fixed;
+    top: 5%;
+    left: 50%;
+    margin-left: -260px;
+    z-index: -100;
+    border-radius:10px;
+}
+
+.win-text {
+    background-color: #00bc1e;
+    height: 150px;
+    width: 260px;
+    color:white;
+    position:fixed;
+    top: 25%;
+    left: 50%;
+    margin-left: -130px;
+    z-index: 100;
+    border-radius:10px;
+    display:none;
+    text-align: center;
+}
+
+.flash-red{
+    animation-name: flash-red;
+    animation-duration: 0.2s;
+}
+
+.flash-green{
+    animation-name: flash-green;
+    animation-duration: 0.2s;
+}
+
+@keyframes flash-red {
+    0%   {background-color: white;}
+    90%  {background-color: red;}
+    100% {background-color: white;}
+}
+
+@keyframes flash-green {
+    0%   {background-color: white;}
+    90%  {background-color: #00c500;}
+    100% {background-color: white;}
+}
+
+.visible{
+    display:block !important;
+}
