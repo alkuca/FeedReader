@@ -2,7 +2,7 @@
 * Udacity Project - Jasmine JavaScript Testing
 
 # How to Run
-** To view the project open the link bellow or download the files and run index.html in a browser
+* To view the project open the link bellow or download the files and run index.html in a browser
 
 # Live Page
  * Github Live Page - [Live Page](https://alkuca.github.io/FeedReader/)
