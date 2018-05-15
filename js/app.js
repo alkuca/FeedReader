@@ -1,131 +1,133 @@
+/* app.js
+ *
+ * This is our RSS feed reader application. It uses the Google
+ * Feed Reader API to grab RSS feeds as JSON object we can make
+ * use of. It also uses the Handlebars templating library and
+ * jQuery.
+ */
 
-var Enemy = function(speed,x,y) {
-    this.sprite = 'images/enemy-bug.png';
-    this.speed = speed;
-    this.x = x;
-    this.y = y;
-    this.width = 50;
-    this.height = 50;
-};
-
-Enemy.prototype.update = function(dt) {
-    this.x += this.speed * dt;
-    const resetBugPosition = -100;
-
-    if(this.x > 550){
-        this.x = resetBugPosition;
-        this.speed = randomSpeed();
+// The names and URLs to all of the feeds we'd like available.
+var allFeeds = [
+    {
+        name: 'Udacity Blog',
+        url: 'http://blog.udacity.com/feed'
+    }, {
+        name: 'CSS Tricks',
+        url: 'http://feeds.feedburner.com/CssTricks'
+    }, {
+        name: 'HTML5 Rocks',
+        url: 'http://feeds.feedburner.com/html5rocks'
+    }, {
+        name: 'Linear Digressions',
+        url: 'http://feeds.feedburner.com/udacity-linear-digressions'
     }
-};
+];
 
-Enemy.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-};
-
-var Player = function(x,y) {
-    this.sprite = 'images/char-boy.png';
-    this.x = x;
-    this.y = y;
-    this.width = 50;
-    this.height = 50;
-};
-
-var enemyOne = new Enemy(randomSpeed(), -100, 220);
-var enemyTwo = new Enemy(randomSpeed(), -250, 140);
-var enemyThree = new Enemy(randomSpeed(), -300, 55);
-var enemyFour = new Enemy(randomSpeed(), 100, 140);
-var allEnemies = [];
-allEnemies.push(enemyOne,enemyTwo,enemyThree,enemyFour);
-
-var player = new Player(200,300);
-
-player.update = function(dt) {
-    if (this.y === -20){
-        flashGreen();
-        setTimeout(function(){ flasher.classList.remove("flash-green"); }, 300);
-        win();
-        resetGame();
-    }
-    this.checkCollisions();
-};
-
-Player.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-};
-
-document.addEventListener('keyup', function(e) {
-    var allowedKeys = {
-        37: 'left',
-        38: 'up',
-        39: 'right',
-        40: 'down'
-    };
-    player.handleInput(allowedKeys[e.keyCode]);
-});
-
-// moves 100 pixels left or right and 80
-player.handleInput = function(move){
-    if(move === "left" && this.x > 0 ){
-        this.x -= 100;
-    }
-    if(move === "right" && this.x < 400){
-        this.x += 100;
-    }
-    if(move === "up" && this.y > 0){
-        this.y -= 80;
-    }
-    if(move === "down" && this.y < 320){
-        this.y += 80;
-    }
-};
-
-// checks if player collides with enemies
-Player.prototype.checkCollisions = function() {
-    for(i = 0; i < allEnemies.length; i++)
-        if (this.x + this.width > allEnemies[i].x &&
-            this.x < allEnemies[i].x + allEnemies[i].width  &&
-            this.height + this.y > allEnemies[i].y &&
-            this.y < allEnemies[i].y + allEnemies[i].height){
-
-            resetGame();
-            flashRed();
-            setTimeout(function(){ flasher.classList.remove("flash-red"); }, 500);
-        }
-};
-
-function randomSpeed() {
-    return Math.floor(Math.random()*(300-150+1)+150);
+/* This function starts up our application. The Google Feed
+ * Reader API is loaded asynchonously and will then call this
+ * function when the API is loaded.
+ */
+function init() {
+    // Load the first feed we've defined (index of 0).
+    loadFeed(0);
 }
 
-const flasher = document.querySelector(".bg");
-const winText = document.querySelector(".win-text");
+/* This function performs everything necessary to load a
+ * feed using the Google Feed Reader API. It will then
+ * perform all of the DOM operations required to display
+ * feed entries on the page. Feeds are referenced by their
+ * index position within the allFeeds array.
+ * This function all supports a callback as the second parameter
+ * which will be called after everything has run successfully.
+ */
+ function loadFeed(id, cb) {
+     var feedUrl = allFeeds[id].url,
+         feedName = allFeeds[id].name;
 
-function flashRed(){
-    flasher.classList.add("flash-red");
-}
+     $.ajax({
+       type: "POST",
+       url: 'https://rsstojson.udacity.com/parseFeed',
+       data: JSON.stringify({url: feedUrl}),
+       contentType:"application/json",
+       success: function (result, status){
 
-function flashGreen(){
-    flasher.classList.add("flash-green");
-}
-function win(){
-    winText.classList.add("visible");
-}
-function removeWin(){
-    winText.classList.remove("visible");
-}
+                 var container = $('.feed'),
+                     title = $('.header-title'),
+                     entries = result.feed.entries,
+                     entriesLen = entries.length,
+                     entryTemplate = Handlebars.compile($('.tpl-entry').html());
 
-// reset positions for the player and all enemies
-function resetGame(){
-    player.x = 200;
-    player.y = 300;
-    enemyOne.x = -100;
-    enemyOne.y = 220;
-    enemyTwo.x = -200;
-    enemyTwo.y = 140;
-    enemyThree.x = -300;
-    enemyThree.y = 55;
-    enemyFour.x = 100;
-    enemyFour.y = 140;
-    speed = randomSpeed();
-    setTimeout(removeWin,500);
-}
+                 title.html(feedName);   // Set the header text
+                 container.empty();      // Empty out all previous entries
+
+                 /* Loop through the entries we just loaded via the Google
+                  * Feed Reader API. We'll then parse that entry against the
+                  * entryTemplate (created above using Handlebars) and append
+                  * the resulting HTML to the list of entries on the page.
+                  */
+                 entries.forEach(function(entry) {
+                     container.append(entryTemplate(entry));
+                 });
+
+                 if (cb) {
+                     cb();
+                 }
+               },
+       error: function (result, status, err){
+                 //run only the callback without attempting to parse result due to error
+                 if (cb) {
+                     cb();
+                 }
+               },
+       dataType: "json"
+     });
+ }
+
+/* Google API: Loads the Feed Reader API and defines what function
+ * to call when the Feed Reader API is done loading.
+ */
+google.setOnLoadCallback(init);
+
+/* All of this functionality is heavily reliant upon the DOM, so we
+ * place our code in the $() function to ensure it doesn't execute
+ * until the DOM is ready.
+ */
+$(function() {
+    var container = $('.feed'),
+        feedList = $('.feed-list'),
+        feedItemTemplate = Handlebars.compile($('.tpl-feed-list-item').html()),
+        feedId = 0,
+        menuIcon = $('.menu-icon-link');
+
+    /* Loop through all of our feeds, assigning an id property to
+     * each of the feeds based upon its index within the array.
+     * Then parse that feed against the feedItemTemplate (created
+     * above using Handlebars) and append it to the list of all
+     * available feeds within the menu.
+     */
+    allFeeds.forEach(function(feed) {
+        feed.id = feedId;
+        feedList.append(feedItemTemplate(feed));
+
+        feedId++;
+    });
+
+    /* When a link in our feedList is clicked on, we want to hide
+     * the menu, load the feed, and prevent the default action
+     * (following the link) from occurring.
+     */
+    feedList.on('click', 'a', function() {
+        var item = $(this);
+
+        $('body').addClass('menu-hidden');
+        loadFeed(item.data('id'));
+        return false;
+    });
+
+    /* When the menu icon is clicked on, we need to toggle a class
+     * on the body to perform the hiding/showing of our menu.
+     */
+    menuIcon.on('click', function() {
+        $('body').toggleClass('menu-hidden');
+    });
+}());
