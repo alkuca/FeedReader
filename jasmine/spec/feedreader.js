@@ -50,7 +50,7 @@ $(function() {
 
         // tests if there is a feed created after the above functions runs
         it("loadFeed function is completed",function(done){
-            const entry = document.querySelector(".entry");
+            const entry = document.querySelector(".entry-link");
             expect(entry.innerText).not.toBe("");
             done();
         });
@@ -63,20 +63,19 @@ $(function() {
 
         // the first function which creates the first feed and saves it in the firstFeed variable
         beforeEach(function(done) {
-            loadFeed(0, function() {
-                firstFeed = document.querySelector(".feed").innerText;
-                done();
+            loadFeed(0);
+            firstFeed = document.getElementsByClassName("feed-list")[0];
+            loadFeed(1);
+            secondFeed = document.getElementsByClassName("feed-list")[1];
+            done();
             });
-        });
 
         it("first feed is different than the second feed",function(done){
             // the second function which creates the second feed and saves it in the secondFeed variable
-            loadFeed(1,function() {
-                secondFeed = document.querySelector(".feed").innerText;
-                done();
-            });
+
             //tests if the first and second feed are different
             expect(firstFeed).not.toEqual(secondFeed);
+            done();
         });
     });
 }());
