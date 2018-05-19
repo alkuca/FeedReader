@@ -42,15 +42,18 @@ $(function() {
     });
 
     describe("Initial Entries", function(){
+
+        var entry;
+
         beforeEach(function(done) {
             loadFeed(0,function() {
-               done();
+                entry = $('.feed .entry-link');
+                done();
             });
         });
 
         // tests if there is a feed created after the above functions runs
         it("loadFeed function is completed",function(done){
-            const entry = document.querySelector(".entry-link");
             expect(entry.innerText).not.toBe("");
             done();
         });
@@ -60,20 +63,19 @@ $(function() {
 
         var firstFeed;
         var secondFeed;
-
-        // the first function which creates the first feed and saves it in the firstFeed variable
-        beforeEach(function(done) {
-            loadFeed(0);
-            firstFeed = document.getElementsByClassName("feed-list")[0];
-            loadFeed(1);
-            secondFeed = document.getElementsByClassName("feed-list")[1];
-            done();
+        
+            beforeEach(function(done) {
+                loadFeed(0, function() {
+                    firstFeed = document.querySelector('.feed').innerHTML;
+                });
+                loadFeed(1, function() {
+                    secondFeed = document.querySelector('.feed').innerHTML;
+                    done();
+                });
             });
 
+            // tests if the first feed is different from the second feed
         it("first feed is different than the second feed",function(done){
-            // the second function which creates the second feed and saves it in the secondFeed variable
-
-            //tests if the first and second feed are different
             expect(firstFeed).not.toEqual(secondFeed);
             done();
         });
